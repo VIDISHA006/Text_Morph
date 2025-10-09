@@ -1,42 +1,52 @@
-# Use Python slim image for smaller size
+# Multi-stage build for Railway optimization
+FROM python:3.11-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python packages
+COPY requirements-minimal.txt requirements.txt ./
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --user -r requirements-minimal.txt
+
+# Production stage
 FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies needed for the app
+# Install runtime dependencies only
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     curl \
-    git \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Copy requirements first for better Docker layer caching
-COPY requirements.txt .
+# Copy installed packages from builder
+COPY --from=builder /root/.local /root/.local
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Make sure scripts in .local are usable
+ENV PATH=/root/.local/bin:$PATH
 
 # Copy application code
 COPY . .
 
-# Download/setup AI models (placeholder for production deployment)
-RUN python download_models.py
-
 # Make entrypoint script executable
 RUN chmod +x docker-entrypoint.sh
 
-# Create directory for SQLite database
+# Create directory for SQLite database  
 RUN mkdir -p /app/instance
 
 # Expose ports for both services
 EXPOSE 8000 8501
 
-# Health check for the application
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/ && curl -f http://localhost:8501/ || exit 1
+# Set environment for Railway
+ENV RAILWAY=true
+ENV PORT=8000
+ENV STREAMLIT_SERVER_PORT=8501
 
 # Use custom entrypoint to start both services
-ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["./docker-entrypoint.sh"]

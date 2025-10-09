@@ -6,6 +6,10 @@ set -e
 echo "🚀 Starting Complete Text-morph Application..."
 echo "📦 Backend + Frontend + AI Models included"
 
+# Setup AI models at runtime (not during build to avoid timeout)
+echo "🤖 Setting up AI models..."
+python download_models.py || echo "⚠️ Model setup will continue in background"
+
 # Function to start backend API
 start_backend() {
     echo "📡 Starting Backend API (FastAPI) on port 8000..."
