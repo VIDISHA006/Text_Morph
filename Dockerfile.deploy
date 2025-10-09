@@ -1,0 +1,42 @@
+# Use Python slim image for smaller size
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies needed for the app
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy requirements first for better Docker layer caching
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Download/setup AI models (placeholder for production deployment)
+RUN python download_models.py
+
+# Make entrypoint script executable
+RUN chmod +x docker-entrypoint.sh
+
+# Create directory for SQLite database
+RUN mkdir -p /app/instance
+
+# Expose ports for both services
+EXPOSE 8000 8501
+
+# Health check for the application
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/ && curl -f http://localhost:8501/ || exit 1
+
+# Use custom entrypoint to start both services
+ENTRYPOINT ["./docker-entrypoint.sh"]

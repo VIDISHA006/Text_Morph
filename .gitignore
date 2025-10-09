@@ -76,3 +76,9 @@ logs/
 # Environment variables and secrets
 .env
 *.env
+
+# Large AI Model Files - Deploy via Railway container build instead
+data/byt5-finetuned/model.safetensors
+data/t5-multi-domain-finetuned/model.safetensors
+data/t5-paraphrase-finetuned/model.safetensors
+data/t5-multi-domain-finetuned/training_args.bin

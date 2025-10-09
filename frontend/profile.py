@@ -11,18 +11,26 @@ def get_profile():
     Uses JWT access token stored in session_state.
     """
     token = st.session_state.get('access_token')
-    st.write(f"Using token: {token}")
     headers = {"Authorization": f"Bearer {st.session_state.get('access_token')}"}
     try:
         response = httpx.get(f"{API_URL}/profile/read", headers=headers, timeout=10)
         response.raise_for_status()
         return response.json()
-    except httpx.HTTPError as e:
-
-        st.error(f"Error fetching profile: {e.response.json().get('detail')}")
+    except httpx.TimeoutException:
+        st.error("Request timed out. Please try again.")
         return None
-    except Exception:
-        st.error("Unexpected error fetching profile")
+    except httpx.HTTPStatusError as e:
+        try:
+            error_detail = e.response.json().get('detail', 'Unknown error')
+        except:
+            error_detail = f"HTTP {e.response.status_code} error"
+        st.error(f"Error fetching profile: {error_detail}")
+        return None
+    except httpx.HTTPError as e:
+        st.error(f"Network error: {str(e)}")
+        return None
+    except Exception as e:
+        st.error(f"Unexpected error fetching profile: {str(e)}")
         return None
 
 def update_profile(age_group, language_preference):
@@ -35,10 +43,22 @@ def update_profile(age_group, language_preference):
         response = httpx.put(f"{API_URL}/profile/update", json=payload, headers=headers, timeout=10)
         response.raise_for_status()
         return True
+    except httpx.TimeoutException:
+        st.error("Request timed out. Please try again.")
+        return False
+    except httpx.HTTPStatusError as e:
+        try:
+            error_detail = e.response.json().get('detail', 'Unknown error')
+        except:
+            error_detail = f"HTTP {e.response.status_code} error"
+        st.error(f"Error updating profile: {error_detail}")
+        return False
     except httpx.HTTPError as e:
-        st.error(f"Error updating profile: {e.response.json().get('detail')}")
-    except Exception:
-        st.error("Unexpected error updating profile")
+        st.error(f"Network error: {str(e)}")
+        return False
+    except Exception as e:
+        st.error(f"Unexpected error updating profile: {str(e)}")
+        return False
 def profile_page():
     # Initialize session state values once
     if "profile_loaded" not in st.session_state or not st.session_state.profile_loaded:

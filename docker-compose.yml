@@ -1,0 +1,89 @@
+# Complete Text-morph Application Stack
+
+services:
+  # Text-morph Complete Application (Backend + Frontend + Models)
+  textmorph:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: textmorph-complete
+    ports:
+      - "8000:8000"   # FastAPI Backend API
+      - "8501:8501"   # Streamlit Frontend UI
+    volumes:
+      # Persistent data storage
+      - textmorph-logs:/app/logs
+      - textmorph-temp:/app/temp  
+      - textmorph-uploads:/app/uploads
+      # Optional: Mount local directories for development
+      # - ./logs:/app/logs
+      # - ./temp:/app/temp
+      # - ./uploads:/app/uploads
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - API_URL=http://localhost:8000
+      - ENVIRONMENT=production
+    networks:
+      - textmorph-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # Optional: Database service (if you want to use external DB)
+  # Uncomment the following section if you want to use PostgreSQL or MySQL
+  
+  # database:
+  #   image: mysql:8.0
+  #   container_name: textmorph-db
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: rootpassword
+  #     MYSQL_DATABASE: textmorph
+  #     MYSQL_USER: textmorph_user
+  #     MYSQL_PASSWORD: textmorph_password
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #   networks:
+  #     - textmorph-network
+  #   restart: unless-stopped
+
+  # Optional: Redis for caching (uncomment if needed)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: textmorph-redis
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - textmorph-network
+  #   restart: unless-stopped
+
+networks:
+  textmorph-network:
+    driver: bridge
+    name: textmorph-network
+
+volumes:
+  textmorph-logs:
+    driver: local
+  textmorph-temp:
+    driver: local  
+  textmorph-uploads:
+    driver: local
+  # Optional database volume
+  # mysql_data:
+  #   driver: local

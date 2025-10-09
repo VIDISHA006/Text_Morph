@@ -1,0 +1,109 @@
+# Git and version control
+.git
+.gitignore
+*.md
+!README.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments (EXCLUDE from Docker)
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+.env
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs and temporary files
+*.log
+logs/
+temp/
+tmp/
+uploads/
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Documentation
+docs/
+*.rst
+
+# Docker
+Dockerfile.*
+docker-compose.override.yml
+.dockerignore
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Node.js (if any frontend assets)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Include all data files for complete application
+# We want the AI models inside the container
+# data/
+# *.pth
+# *.pkl  
+# *.bin
+# *.safetensors
+**/model.safetensors
+**/pytorch_model.bin
+
+# Keep only essential config files
+!data/*/config.json
+!data/*/tokenizer*.json
+!data/*/special_tokens_map.json
