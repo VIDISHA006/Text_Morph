@@ -1,52 +1,38 @@
-# Multi-stage build for Railway optimization
-FROM python:3.11-slim as builder
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements and install Python packages
-COPY requirements-minimal.txt requirements.txt ./
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir --user -r requirements-minimal.txt
-
-# Production stage
-FROM python:3.11-slim
+# Ultra-lightweight Python image for Railway
+FROM python:3.11-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Install runtime dependencies only
-RUN apt-get update && apt-get install -y \
-    tesseract-ocr \
+# Install only essential system dependencies
+RUN apk add --no-cache \
     curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    bash \
+    && rm -rf /var/cache/apk/*
 
-# Copy installed packages from builder
-COPY --from=builder /root/.local /root/.local
+# Copy and install minimal Python dependencies
+COPY requirements-minimal.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements-minimal.txt
 
-# Make sure scripts in .local are usable
-ENV PATH=/root/.local/bin:$PATH
+# Copy only essential application files (exclude large data/)
+COPY backend/ backend/
+COPY frontend/ frontend/  
+COPY docker-entrypoint.sh .
+COPY download_models.py .
 
-# Copy application code
-COPY . .
+# Make entrypoint executable and create directories
+RUN chmod +x docker-entrypoint.sh && \
+    mkdir -p /app/instance /app/data
 
-# Make entrypoint script executable
-RUN chmod +x docker-entrypoint.sh
-
-# Create directory for SQLite database  
-RUN mkdir -p /app/instance
-
-# Expose ports for both services
+# Expose ports
 EXPOSE 8000 8501
 
-# Set environment for Railway
-ENV RAILWAY=true
-ENV PORT=8000
-ENV STREAMLIT_SERVER_PORT=8501
+# Environment variables for Railway
+ENV RAILWAY=true \
+    PORT=8000 \
+    STREAMLIT_SERVER_PORT=8501 \
+    PYTHONUNBUFFERED=1
 
-# Use custom entrypoint to start both services
+# Start application
 CMD ["./docker-entrypoint.sh"]

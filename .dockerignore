@@ -93,17 +93,23 @@ yarn-error.log*
 # Jupyter Notebooks
 .ipynb_checkpoints
 
-# Include all data files for complete application
-# We want the AI models inside the container
-# data/
-# *.pth
-# *.pkl  
-# *.bin
-# *.safetensors
-**/model.safetensors
-**/pytorch_model.bin
+# EXCLUDE large AI model files to reduce Docker image size
+data/
+**/*.safetensors
+**/*.bin
+**/*.model
+**/*.pth
+**/*.pkl
 
-# Keep only essential config files
-!data/*/config.json
-!data/*/tokenizer*.json
-!data/*/special_tokens_map.json
+# EXCLUDE all test files
+test_*.py
+check_*.py
+**/tests/
+**/test/
+
+# EXCLUDE development files
+scripts/
+*.orig
+requirements.txt
+requirements-*.txt
+!requirements-minimal.txt
