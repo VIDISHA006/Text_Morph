@@ -115,43 +115,16 @@ def create_model_config():
         print(f"✅ Created config for {model_name}")
 
 def download_models():
-    """Download the AI models from Hugging Face or alternative sources."""
+    """Setup AI models using pre-trained Hugging Face models as fallback."""
     
     print("🤖 Setting up Text Morph AI Models...")
-    print("Note: In production, models would be downloaded from your model repository")
-    print("For now, creating placeholder model files for demonstration...")
     
-    # Create model directories and placeholder files
-    models_info = [
-        ("byt5-finetuned", "ByT5 Dialogue Generation Model"),
-        ("t5-multi-domain-finetuned", "T5 Multi-Domain Summarization Model"), 
-        ("t5-paraphrase-finetuned", "T5 Paraphrasing Model")
-    ]
-    
-    for model_dir, description in models_info:
-        model_path = Path("data") / model_dir
-        model_path.mkdir(parents=True, exist_ok=True)
-        
-        # Create a placeholder model file (in production, this would be the actual download)
-        placeholder_path = model_path / "model.safetensors"
-        
-        if not placeholder_path.exists():
-            print(f"📦 Setting up {description}...")
-            
-            # In a real deployment, you would download from your model repository:
-            # download_file("https://your-model-repo.com/models/model.safetensors", placeholder_path)
-            
-            # For demo, create a minimal placeholder
-            with open(placeholder_path, 'wb') as f:
-                f.write(b"PLACEHOLDER_MODEL_FILE")
-            
-            print(f"✅ {description} ready")
-    
-    # Create model configurations
+    # Create model configurations first
     create_model_config()
     
-    print("\n🎉 All models are set up and ready!")
-    print("Note: In production deployment, replace placeholder files with actual trained models")
+    print("\n✅ Model setup complete!")
+    print("� Note: Using Hugging Face transformers for model loading")
+    print("💡 Models will be downloaded automatically on first use")
 
 if __name__ == "__main__":
     download_models()
