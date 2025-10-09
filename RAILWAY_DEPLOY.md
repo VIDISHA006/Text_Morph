@@ -1,13 +1,28 @@
-# Railway Deployment for Text Morph AI
+# Railway Deployment - BUILD ISSUES FIXED 
 
-This directory contains the deployment configuration for Railway platform.
+## 🚀 SOLUTION: Use Railway-Optimized Files
 
-## 🚀 Quick Deploy to Railway
+### Problem Identified
+Railway builds were failing due to:
+- Heavy AI dependencies timing out
+- Complex database initialization 
+- Large model files causing memory issues
 
-1. **Connect Repository**: Link your GitHub repository to Railway
-2. **Auto-Deploy**: Railway will automatically detect the Docker configuration
-3. **Environment Variables**: No special configuration needed
-4. **Public Access**: Your app will be available at `https://your-app-name.railway.app`
+### Solution: Minimal Deploy First
+
+**Use these files for Railway deployment:**
+
+1. **`Dockerfile.railway`** - Lightweight, fast build
+2. **`requirements.railway.txt`** - Minimal dependencies
+3. **`railway-entrypoint.sh`** - Simplified startup
+4. **Simplified `main.py`** - Already configured
+
+### Quick Deploy Steps
+
+1. **Railway Dashboard**: Connect this repository
+2. **Build Settings**: Select `Dockerfile.railway`  
+3. **Auto Deploy**: Railway will build in ~2 minutes
+4. **Public Access**: Get instant URL
 
 ## 📋 Deployment Files
 

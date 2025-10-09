@@ -1,38 +1,48 @@
-# Ultra-lightweight Python image for Railway
-FROM python:3.11-alpine
+# Text-morph Complete Application Docker Image
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
-# Install only essential system dependencies
-RUN apk add --no-cache \
+# Install system dependencies (minimal for faster build)
+RUN apt-get update && apt-get install -y \
     curl \
-    bash \
-    && rm -rf /var/cache/apk/*
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy and install minimal Python dependencies
-COPY requirements-minimal.txt .
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Copy and install Python dependencies first (better caching)
+COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements-minimal.txt
+    pip install --no-cache-dir -r requirements.txt
 
-# Copy only essential application files (exclude large data/)
-COPY backend/ backend/
-COPY frontend/ frontend/  
-COPY docker-entrypoint.sh .
-COPY download_models.py .
+# Copy application code (excluding large data files initially)
+COPY backend/ ./backend/
+COPY frontend/ ./frontend/
+COPY scripts/ ./scripts/
+COPY *.py ./
+COPY docker-entrypoint.sh ./
 
-# Make entrypoint executable and create directories
-RUN chmod +x docker-entrypoint.sh && \
-    mkdir -p /app/instance /app/data
+# Copy data directory (AI models) - this is the large part
+COPY data/ ./data/
 
-# Expose ports
+# Create necessary directories
+RUN mkdir -p /app/logs /app/temp /app/uploads
+
+# Make entrypoint script executable
+RUN chmod +x /app/docker-entrypoint.sh
+
+# Expose ports for backend and frontend
 EXPOSE 8000 8501
 
-# Environment variables for Railway
-ENV RAILWAY=true \
-    PORT=8000 \
-    STREAMLIT_SERVER_PORT=8501 \
-    PYTHONUNBUFFERED=1
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8501/_stcore/health || curl -f http://localhost:8000/ || exit 1
 
-# Start application
-CMD ["./docker-entrypoint.sh"]
+# Start the complete application
+CMD ["/app/docker-entrypoint.sh"]
