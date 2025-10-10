@@ -24,14 +24,17 @@ def login(email: str, password: str):
             return True, user
         else:
             return False, None
-    except httpx.ConnectError as e:
-        st.error("Failed to connect to the backend server. Please ensure the backend is running.")
-        return False, None
-    except httpx.HTTPStatusError as e:
-        try:
-            st.error(f"Login failed: {e.response.json().get('detail')}")
-        except:
-            st.error(f"Login failed with status code: {e.response.status_code}")
+    except httpx.HTTPError as e:
+        # Check if it's a 4xx/5xx HTTP error (like 404, 401, etc.)
+        if hasattr(e, 'response') and e.response is not None:
+            try:
+                error_detail = e.response.json().get('detail', f"HTTP {e.response.status_code}")
+                st.error(f"Login failed: {error_detail}")
+            except:
+                st.error(f"Login failed with status code: {e.response.status_code}")
+        else:
+            # This is likely a connection error
+            st.error("Failed to connect to the backend server. Please ensure the backend is running.")
         return False, None
     except Exception:
         st.error("An unexpected error occurred during login.")
