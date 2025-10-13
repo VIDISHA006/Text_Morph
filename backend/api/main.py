@@ -5,6 +5,7 @@ from backend.api.database import create_connection
 from backend.api.passhash import hash_password, verify_password
 from backend.api.auth import create_access_token, verify_token
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from backend.api.routers.profile_routes import router as profile_router
 
 app = FastAPI(title="Text Morph AI - Railway")
 security = HTTPBearer()
@@ -199,6 +200,9 @@ def get_user_history(user_id: int, current_user: dict = Depends(get_current_user
         }
         for h in history
     ]
+
+# Include profile router
+app.include_router(profile_router, prefix="/profile", tags=["profile"])
 
 # Verification endpoint (optional)
 @app.get("/verify")

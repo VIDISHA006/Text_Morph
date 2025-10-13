@@ -16,11 +16,19 @@ def read_profile(current_user: dict = Depends(get_current_user)):
         (current_user["id"],)
     )
     profile = cursor.fetchone()
+    
+    if not profile:
+        # Create a default profile if one doesn't exist
+        cursor.execute(
+            "INSERT INTO profiles (user_id, age_group, language_preference) VALUES (%s, %s, %s)",
+            (current_user["id"], 25, "English")
+        )
+        connection.commit()
+        # Return the default profile
+        profile = {"age_group": 25, "language_preference": "English"}
+    
     cursor.close()
     connection.close()
-
-    if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
     return profile
 
 @router.put("/update")
